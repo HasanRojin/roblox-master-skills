@@ -15,3 +15,9 @@ __pycache__/
 # Secrets
 .env
 *.pem
+
+# Unpacked downloads of third-party tools (only the skill folders are kept in skills/third-party/)
+/ponytail-main/
+/impeccable-main/
+/superpowers-main/
+/ui-ux-pro-max-skill-main/

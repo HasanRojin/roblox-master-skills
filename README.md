@@ -55,8 +55,10 @@ roblox-master-skills/
 │   └── ai-error-log-and-donts.md          ← AI-এর ভুলের লগ ও নিষেধাজ্ঞা
 ├── ai-prompts/
 │   └── image-and-3d-asset-prompts.md      ← ইমেজ জেনারেশন ও Blender bpy প্রম্পট
+├── CLAUDE.md / AGENTS.md                  ← কোন কাজে কোন স্কিল, এজেন্ট নিজে থেকে পড়ে
 ├── skills/
-│   └── model-reference-sheet/             ← মডেলের রেফারেন্স শিট ইমেজের প্রম্পট বানানোর স্কিল
+│   ├── model-reference-sheet/             ← মডেলের রেফারেন্স শিট ইমেজের প্রম্পট বানানোর স্কিল
+│   └── third-party/                       ← Ponytail, Superpowers, Impeccable, UI UX Pro Max (শুধু স্কিল অংশ)
 └── roblox-brain-local/                    ← Roblox Brain (MIT লাইসেন্স) এর লোকাল কপি
     └── skills/
         ├── core/        (১০টি স্কিল)

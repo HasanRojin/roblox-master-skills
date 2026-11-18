@@ -49,6 +49,11 @@ Rules of engagement:
 | `core-rules/luau-coding-standards.md` | Luau style, strict typing, RemoteEvent security, DataStore safety, performance. | Any scripting task. |
 | `core-rules/map-building-and-playability.md` | Grid scale, character clearance, jump metrics, layout and playability QA. | Any building / level-design task. |
 | `ai-prompts/image-and-3d-asset-prompts.md` | Image-generation prompt templates and Blender `bpy` scripting rules. | Any asset-generation task. |
+| `CLAUDE.md` / `AGENTS.md` | Task → skill routing table, token-saving rules and hard rules. Identical content; each agent reads its own filename. | Read at session start. |
+| `skills/third-party/ponytail/` | Minimal-code and review skills (MIT). | Coding tasks, reviews, repo audits. |
+| `skills/third-party/superpowers/` | Planning, debugging, TDD, verification skills (MIT). | Large features, bugs, before claiming done. |
+| `skills/third-party/impeccable/` | UI design critique, audit and polish (Apache-2.0). | Frontend and UI work. |
+| `skills/third-party/ui-ux-pro-max/` | UI/UX design system, styling, palettes (MIT). | Designing or styling interfaces. |
 | `skills/model-reference-sheet/` | Project skill: turns a model description into a 16:9 reference sheet image prompt (hero, orthographic views, callouts, close-ups, materials) plus a build spec. | Any request for a model/reference sheet or before modeling an asset. |
 | `roblox-brain-local/` | Local copy of [roblox-brain](https://github.com/TabooHarmony/roblox-brain) (MIT): 29 skills across `core`, `gameplay`, `design`, `tools`. | Domain-specific deep dives. |
 
