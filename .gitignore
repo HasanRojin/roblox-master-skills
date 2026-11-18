@@ -1,0 +1,17 @@
+# OS
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Blender
+*.blend1
+*.blend2
+
+# Secrets
+.env
+*.pem
