@@ -29,6 +29,16 @@ Read this file at the start of every session. Read the other files only when the
 | Bug or failing test | `skills/third-party/superpowers/systematic-debugging/SKILL.md` |
 | Claiming work is done | `skills/third-party/superpowers/verification-before-completion/SKILL.md` |
 
+## Session flow (talk → plan → work)
+
+Most sessions start with discussion, not code. Follow these phases:
+
+1. **Discussion:** Read this file and `UNIVERSAL-BOOTSTRAP.md`. Identify the task type from the table above. Do not load a skill's full text yet. Name the skills you expect to need in the plan.
+2. **Plan:** Once the user agrees to a plan, load only the skills in that plan, then start. If the user asks which skills they need or whether they are installed, load `skills/project-setup/SKILL.md`.
+3. **Work:** Use only the skills named in the agreed plan. Load a new one only if the task changes. Log any correction in `core-rules/ai-error-log-and-donts.md`.
+
+If the user asks for the list of recommended skills or to install them, use `skills/project-setup/SKILL.md`. It asks before copying anything.
+
 ## Token-saving rules
 
 - Read a skill's `SKILL.md` first. Open its `references/` or extra files only when the quick section is not enough.
