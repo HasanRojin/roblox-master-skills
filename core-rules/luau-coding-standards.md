@@ -30,7 +30,7 @@ Rules:
 - Get services once at the top: `local Players = game:GetService("Players")`. Never `game.Players`.
 - Naming: `PascalCase` for modules, classes, services, types; `camelCase` for locals and functions; `UPPER_SNAKE_CASE` for constants.
 - Use `task.wait`, `task.spawn`, `task.defer`, `task.delay`. Never `wait`, `spawn`, `delay`.
-- Use `WaitForChild` on the client for replicated instances, with a timeout where the instance might legitimately be missing. Do not use it on the server for instances the server itself created.
+- Use `WaitForChild` on the client for replicated instances, with a timeout where the instance might legitimately be missing. With a timeout it returns `Instance?`, so handle `nil`. Do not use it on the server for instances the server itself created.
 - Prefer early returns over deep nesting.
 - No magic numbers in logic. Put tunables in a `Config` module.
 - Deprecated APIs are banned: `Instance.new(class, parent)` (set Parent last), `BodyVelocity`/`BodyPosition`/`BodyGyro` (use constraint movers), `:connect` (lowercase), `Workspace:FindPartOnRay` (use `Workspace:Raycast`).
@@ -52,7 +52,10 @@ return table.freeze(Config)
 - Annotate every function parameter and return value in public module APIs.
 - Narrow `Instance?` before use: `if not part or not part:IsA("BasePart") then return end`.
 - Export shared types from a `Types` module in `ReplicatedStorage/Shared/`.
-- Never cast with `:: any` to escape an error unless you add a comment explaining why.
+- Prefer `:IsA("ClassName")` over `:: Cast`: it narrows the type and validates at runtime.
+- Never cast with `:: any` to escape an error unless you add a comment explaining why. `x :: any :: T` means the types are lying somewhere.
+- Types are compile-time only. They never validate network input; remote handlers type incoming arguments as `unknown` and narrow them (Section 4).
+- Forward-declare mutually recursive functions with a typed `local name: (args) -> ()` and assign with `name = function(...)`, not `local function name` (which shadows the declaration).
 
 ```luau
 export type PlayerData = {
@@ -71,15 +74,22 @@ The client is controlled by the player and can be modified by exploiters. Every 
 ### 4.1 Hard rules
 
 1. **Server creates remotes.** Clients only find them.
-2. **Never trust any argument.** Validate type, range, length, NaN/inf, and ownership on every call.
+2. **Never trust any argument.** Validate in this order and return early on the first failure: **type → range → permission → plausibility** (distance, state, cooldown). Drop invalid requests silently; never `error()` back to the client.
+   - `NaN` passes `typeof(x) == "number"` and defeats `<`/`>`. Check `x ~= x` first, then `math.abs(x) == math.huge`.
+   - Never index an argument before type-checking it (`itemId.Name` on a string throws and kills the handler thread).
+   - Tables sent through remotes are copies: metatables stripped, functions arrive `nil`, mixed keys mangled, `nil` truncates arrays. Prefer scalar arguments; otherwise validate field by field.
+   - Use `utf8.len(s)` to reject malformed UTF-8 strings (they fail DataStore saves later).
 3. **The client sends intent, never results.** Send `"BuyItem", "Sword"` — never `coins = 999` or `damage = 100`.
 4. **The server recomputes everything:** prices, damage, distance, cooldowns, line of sight.
-5. **Rate-limit every remote per player.** Drop excess calls silently; log repeated abuse.
+5. **Rate-limit every remote per player** with a token bucket (Section 4.3). Drop excess calls silently. Log repeat offenders, but **never auto-ban on rate limits alone** (mobile lag and retry loops cause false positives); act only on accumulated evidence.
 6. **Check sanity against server state:** is the player alive, in range, owning the item, not on cooldown?
 7. **Never use `RemoteFunction:InvokeClient`.** A client can yield forever or error. Use RemoteEvents for server→client.
 8. **`OnServerInvoke` must never yield on untrusted work** and must always return a value.
 9. **Never pass instances from the client as authority.** If a client sends a `Part`, verify it is a descendant of the expected container and within range.
-10. **Never expose admin/debug remotes in production.** Gate them by `game.CreatorId`/group rank **and** `RunService:IsStudio()` where appropriate.
+10. **Never expose admin/debug remotes in production.** Gate every privileged remote by a server-side allowlist of UserIds (or group rank checked on the server), and do not create QA/cheat remotes outside Studio (`RunService:IsStudio()`).
+11. **Never read authoritative values from replicated objects** such as `leaderstats` `IntValue`s or Tool attributes the client can see. Server state lives in server modules; look stats up by item ID.
+12. **Character movement is client-simulated.** Speed/fly hacks cannot be prevented, only detected: sample `HumanoidRootPart` positions on the server, flag displacement above max speed × elapsed time (with margin), rubber-band before punishing.
+13. **`UnreliableRemoteEvent`** is only for replaceable data (VFX triggers, position hints). It can drop messages and has a ~1000-byte payload cap.
 
 ### 4.2 Reference pattern
 
@@ -92,67 +102,125 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Catalog = require(script.Parent.Catalog) -- server-only prices
 local PlayerData = require(script.Parent.Parent.Data.PlayerData)
 
-local remotes = ReplicatedStorage:WaitForChild("Remotes")
+local RateLimit = require(script.Parent.Parent.Net.RateLimit) -- token bucket, Section 4.3
+
+-- The server creates the remotes folder; no WaitForChild needed here.
+local remotes = ReplicatedStorage:FindFirstChild("Remotes")
+if not remotes then
+	remotes = Instance.new("Folder")
+	remotes.Name = "Remotes"
+	remotes.Parent = ReplicatedStorage
+end
+
 local buyRemote = Instance.new("RemoteEvent")
 buyRemote.Name = "BuyItem"
 buyRemote.Parent = remotes
 
-local COOLDOWN = 0.5
-local lastCall: { [Player]: number } = {}
+buyRemote.OnServerEvent:Connect(function(player: Player, itemId: unknown, quantity: unknown)
+	if not RateLimit.allow(player, "BuyItem", 3, 5) then return end
 
-local function isValidItemId(value: unknown): boolean
-	return typeof(value) == "string" and #value > 0 and #value <= 32 and Catalog[value] ~= nil
-end
-
-buyRemote.OnServerEvent:Connect(function(player: Player, itemId: unknown)
-	local now = os.clock()
-	if now - (lastCall[player] or 0) < COOLDOWN then
-		return -- rate limited
-	end
-	lastCall[player] = now
-
-	if not isValidItemId(itemId) then
-		return
-	end
-	local id = itemId :: string
-	local price = Catalog[id].price -- server decides the price
-
+	-- 1. TYPE
+	if typeof(itemId) ~= "string" or typeof(quantity) ~= "number" then return end
+	-- 2. RANGE (NaN first, then integer and bounds)
+	if quantity ~= quantity then return end
+	if quantity ~= math.floor(quantity) or quantity < 1 or quantity > 100 then return end
+	if #itemId == 0 or #itemId > 32 then return end
+	-- 3. PERMISSION: item exists, player data loaded
+	local item = Catalog[itemId]
+	if not item then return end
 	local data = PlayerData.get(player)
-	if not data or data.coins < price then
-		return
-	end
-	data.coins -= price
-	data.inventory[id] = (data.inventory[id] or 0) + 1
-end)
+	if not data then return end
+	-- 4. PLAUSIBILITY: server-side price and balance
+	local cost = item.price * quantity
+	if data.coins < cost then return end
 
-Players.PlayerRemoving:Connect(function(player)
-	lastCall[player] = nil -- prevent memory leak
+	data.coins -= cost
+	data.inventory[itemId] = (data.inventory[itemId] or 0) + quantity
 end)
 
 return {}
 ```
 
-### 4.3 Number validation helper
+### 4.3 Token-bucket rate limiter
+
+```luau
+--!strict
+-- ServerScriptService/Net/RateLimit.luau (ModuleScript)
+local Players = game:GetService("Players")
+
+type Bucket = { tokens: number, last: number }
+local buckets: { [Player]: { [string]: Bucket } } = {}
+
+local RateLimit = {}
+
+function RateLimit.allow(player: Player, key: string, ratePerSec: number, burst: number): boolean
+	local now = os.clock()
+	local playerBuckets = buckets[player]
+	if not playerBuckets then
+		playerBuckets = {}
+		buckets[player] = playerBuckets
+	end
+	local b = playerBuckets[key]
+	if not b then
+		b = { tokens = burst, last = now }
+		playerBuckets[key] = b
+	end
+	b.tokens = math.min(burst, b.tokens + (now - b.last) * ratePerSec)
+	b.last = now
+	if b.tokens < 1 then
+		return false
+	end
+	b.tokens -= 1
+	return true
+end
+
+Players.PlayerRemoving:Connect(function(player)
+	buckets[player] = nil -- prevent memory leak
+end)
+
+return RateLimit
+```
+
+### 4.4 Number validation helper
 
 ```luau
 local function isFiniteNumber(value: unknown, min: number, max: number): boolean
 	return typeof(value) == "number" and value == value -- rejects NaN
-		and value > -math.huge and value < math.huge
+		and math.abs(value) ~= math.huge
 		and value >= min and value <= max
 end
 ```
+
+### 4.5 Distance check for world interactions
+
+```luau
+local MAX_REACH = 20 -- studs; tune per interaction
+
+local function canReach(player: Player, target: BasePart): boolean
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if not root or not root:IsA("BasePart") then return false end
+	return (root.Position - target.Position).Magnitude <= MAX_REACH
+end
+```
+
+Also re-check state inside the handler: the chest is not already open, the mob is alive, the item has not been claimed by someone else.
 
 ---
 
 ## 5. DataStore safety
 
-- Wrap every DataStore call in `pcall` with retry and exponential backoff (e.g. 3–5 attempts, 1s → 2s → 4s).
-- Use `UpdateAsync` for writes that depend on existing data; never read-then-`SetAsync`.
-- Implement session locking (or use a proven library such as ProfileStore) to prevent duplication across servers.
-- Save on `PlayerRemoving`, on a periodic autosave (60–180 s), and in `game:BindToClose` (yield until saves finish, within the 30 s limit).
-- Store a `version` field and migrate old schemas on load.
-- If loading fails, do NOT let the player play with default data that will later overwrite their real save. Kick with a clear message or retry.
-- Never store `Instance` references or functions in a DataStore.
+- **Prefer ProfileStore** (successor to ProfileService) for production. It already implements session locking, retries and release. Hand-roll the rules below only with a reason.
+- Wrap every DataStore call in `pcall` with retry and exponential backoff (e.g. 3–5 attempts, 1s → 2s → 4s, capped at 16s).
+- Use `UpdateAsync` for player data; never `GetAsync` + `SetAsync` (races against other servers and yourself).
+- **Never yield inside an `UpdateAsync` transform.** Compute the new value synchronously; return `nil` to abort the write.
+- **Session locking:** on load, claim the profile inside `UpdateAsync` by writing this server's `JobId` + timestamp. If another server holds a fresh lock, do not load; retry briefly, then kick with "your data is still saving, rejoin in a moment". Autosaves refresh the lock; a lock older than ~2× the autosave interval is stale.
+- **Gameplay code never touches DataStores.** It mutates one in-memory profile table; one persistence module saves it.
+- Save on: autosave every 30–60 s (staggered per player, e.g. `UserId % interval`), `PlayerRemoving` (final save + release lock), and `game:BindToClose` (save all players in parallel with `task.spawn`, wait until done or ~25 s; skip the wait in Studio).
+- Same-key writes are throttled (about one per ~6 s). One key per player; never save on every coin pickup.
+- Store a `version` field and migrate old schemas on load, inside the same `UpdateAsync` that claims the lock. Deep-copy the default profile for new players.
+- If loading fails, do NOT let the player play with default data that will later overwrite their real save. Distinguish "no data" (new player) from "call failed", and kick on failure.
+- Store only JSON-encodable data: no Instances, functions, CFrames, cyclic or mixed-key tables. Convert at the boundary (`Vector3` → `{x, y, z}`, `Color3` → hex). Cap unbounded arrays (logs, histories); a key holds at most ~4 MB.
 
 ---
 
@@ -166,6 +234,13 @@ end
 - Prefer `CollectionService` tags over scanning `workspace:GetDescendants()` repeatedly.
 - Enable and design for `StreamingEnabled`: on the client, never assume a distant part exists.
 - Set `Anchored = true` on static map parts and `CanCollide/CanTouch/CanQuery = false` where not needed.
+- Never tween world objects on the server (each step replicates). Fire one small event and tween on clients.
+- Not everything needs 60 Hz: accumulate `dt` and update health bars at ~10 Hz, minimaps at ~4 Hz. Never use `while true do task.wait() end` to poll for something an event can signal.
+- Cache `FindFirstChild` results outside frame loops; `GetChildren()` allocates a new table on every call.
+- Pool frequently spawned objects (bullets, damage numbers) instead of create/destroy churn.
+- Call `SetNetworkOwner(nil)` on server-driven NPCs and parts so exploiters cannot physics-drag them.
+- Before teleporting a player far away under `StreamingEnabled`, call `Player:RequestStreamAroundAsync` on the destination.
+- Measure before optimizing: MicroProfiler (Ctrl+F6), Developer Console → Memory (F9; steady `LuaHeap` growth while idle means leaks), Script Performance panel.
 
 ---
 
@@ -190,10 +265,10 @@ end
 - [ ] `--!strict` present and no type errors.
 - [ ] All services fetched via `GetService`.
 - [ ] No deprecated APIs (`wait`, `spawn`, `BodyVelocity`, `Instance.new(c, parent)`).
-- [ ] Every remote validates types, ranges, ownership, and is rate-limited.
+- [ ] Every remote validates type → range (NaN/inf) → permission → plausibility, and is rate-limited.
 - [ ] Client sends intent only; server computes outcomes.
 - [ ] No `InvokeClient`.
 - [ ] Every connection and per-player table is cleaned up.
-- [ ] DataStore calls use `pcall` + retry + `UpdateAsync` + `BindToClose`.
+- [ ] DataStore calls use `pcall` + retry + `UpdateAsync` + session lock + `BindToClose`; failed loads kick instead of using defaults.
 - [ ] No secrets or authoritative data in `ReplicatedStorage`.
 - [ ] Script location and type are stated in a header comment.

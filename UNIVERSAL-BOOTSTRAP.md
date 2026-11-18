@@ -21,9 +21,11 @@ load and obey the "roblox-master-skills" repository using this order:
    or generating any map, level, obby, or world geometry.
 5. Read ai-prompts/image-and-3d-asset-prompts.md before generating images,
    textures, icons, or Blender (bpy) scripts.
-6. For deep domain knowledge, load the matching skill from
-   roblox-brain-local/skills/<library>/<skill>/SKILL.md, then its
-   references/full.md only if the quick reference is not enough.
+6. MANDATORY: before writing or reviewing anything in a domain, load the
+   matching skill from roblox-brain-local/skills/<library>/<skill>/SKILL.md
+   (and any matching skill installed in your host), then its
+   references/full.md if the quick reference is not enough.
+   Never work from memory when a skill exists for the task.
 
 Rules of engagement:
 - The server is authoritative. Never trust the client.
@@ -106,7 +108,7 @@ Do not invent capabilities for these tools. If you have not loaded one, say so i
 For every task, follow this loop:
 
 1. **Classify** the task: scripting, building, UI, assets, design, tooling, or mixed.
-2. **Load** the matching files from Section 2. Always include the error log.
+2. **Load** the matching files from Section 2, including the matching skills (not optional). Always include the error log.
 3. **Plan** in 3–7 bullet points. State where each script lives (`ServerScriptService`, `ReplicatedStorage`, `StarterPlayerScripts`, etc.).
 4. **Implement** in small steps. Each step must be runnable on its own.
 5. **Verify**: run a play test (or describe the exact manual test), check Output for errors, and run the checklists at the end of each core-rules file.

@@ -62,6 +62,7 @@ Logging rules:
 - **Never** delete or overwrite the user's existing builds or scripts without explicit confirmation.
 
 ### 2.5 Agent behavior
+- **Never** write or review domain code or rules without first loading the matching skills (`roblox-brain-local/skills/...` or skills installed in your host). Writing from memory produced wrong numbers in this repo once already.
 - **Never** claim something was tested when it was not. State exactly what was and was not verified.
 - **Never** output a "simplified" version of an existing script that silently removes features.
 - **Never** rewrite large working systems when a targeted fix was requested.
@@ -72,6 +73,14 @@ Logging rules:
 ---
 
 ## 3. Incident log (newest first)
+
+### [2026-11-18] Wrote core rules from memory without loading the available skills
+- **Context:** Writing `core-rules/luau-coding-standards.md` and `core-rules/map-building-and-playability.md` for this repository.
+- **Mistake:** The agent wrote both files from general knowledge and did not load the Roblox skills that were installed and present in `roblox-brain-local/` (security, datastores, performance, strict typing, building, networking).
+- **Symptom:** Jump-gap table claimed 10-stud gaps were "safe" and 14 studs possible; default physics allows only ~8.7 studs of root travel. Ceiling, stair and path sizes disagreed with `roblox-building`. Sample shop code called `WaitForChild` on the server against its own rule and used a weaker cooldown instead of a token bucket. DataStore rules missed session-lock details, the no-yield `UpdateAsync` rule and staggered autosaves.
+- **Fix:** Loaded the skills, compared them line by line, corrected the numbers (with the physics formulas), and rewrote the affected sections.
+- **Rule:** Always load the matching skills before writing or reviewing rules or code in their domain, and check every number against them.
+- **Agent:** Claude
 
 ### [2026-11-18] Example entry — template demonstration
 - **Context:** Building a coin shop.
