@@ -55,6 +55,8 @@ roblox-master-skills/
 │   └── ai-error-log-and-donts.md          ← AI-এর ভুলের লগ ও নিষেধাজ্ঞা
 ├── ai-prompts/
 │   └── image-and-3d-asset-prompts.md      ← ইমেজ জেনারেশন ও Blender bpy প্রম্পট
+├── skills/
+│   └── model-reference-sheet/             ← মডেলের রেফারেন্স শিট ইমেজের প্রম্পট বানানোর স্কিল
 └── roblox-brain-local/                    ← Roblox Brain (MIT লাইসেন্স) এর লোকাল কপি
     └── skills/
         ├── core/        (১০টি স্কিল)
@@ -112,6 +114,7 @@ AI কোনো ভুল করলে এবং আপনি তা শুধ�
 | `core-rules/map-building-and-playability.md` | ৪-স্টাড গ্রিড, দরজা ও করিডোরের মাপ, লাফের দূরত্ব, প্লেটেস্ট চেকলিস্ট |
 | `core-rules/ai-error-log-and-donts.md` | স্থায়ী নিষেধাজ্ঞা আর তারিখসহ ভুলের লগ |
 | `ai-prompts/image-and-3d-asset-prompts.md` | আইকন, থাম্বনেইল, টেক্সচারের প্রম্পট; Blender স্ক্রিপ্ট ও FBX এক্সপোর্ট |
+| `skills/model-reference-sheet/` | মডেলের নাম বললেই এক পাতার রেফারেন্স শিটের প্রম্পট: হিরো রেন্ডার, চার দিকের ভিউ, অংশের নাম, ক্লোজ-আপ আর রঙের হেক্স কোড। ব্যবহার: `/model-reference-sheet একটা কাঠের ট্রেজার চেস্ট` |
 
 ---
 

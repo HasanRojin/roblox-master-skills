@@ -49,6 +49,7 @@ Rules of engagement:
 | `core-rules/luau-coding-standards.md` | Luau style, strict typing, RemoteEvent security, DataStore safety, performance. | Any scripting task. |
 | `core-rules/map-building-and-playability.md` | Grid scale, character clearance, jump metrics, layout and playability QA. | Any building / level-design task. |
 | `ai-prompts/image-and-3d-asset-prompts.md` | Image-generation prompt templates and Blender `bpy` scripting rules. | Any asset-generation task. |
+| `skills/model-reference-sheet/` | Project skill: turns a model description into a 16:9 reference sheet image prompt (hero, orthographic views, callouts, close-ups, materials) plus a build spec. | Any request for a model/reference sheet or before modeling an asset. |
 | `roblox-brain-local/` | Local copy of [roblox-brain](https://github.com/TabooHarmony/roblox-brain) (MIT): 29 skills across `core`, `gameplay`, `design`, `tools`. | Domain-specific deep dives. |
 
 ### roblox-brain-local skill router
