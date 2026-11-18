@@ -1,10 +1,29 @@
 <div align="center">
 
+<img src="assets/banner.svg" alt="Roblox Master Skills" width="100%">
+
 # 🎮 Roblox Master Skills
 
 **Roblox ও গেম ডেভেলপমেন্টের জন্য AI এজেন্টদের একটি ইউনিভার্সাল স্কিল ও নিয়মের ভাণ্ডার**
 
 Claude, ChatGPT, Cursor বা যেকোনো AI কোডিং এজেন্টকে এক ধাপে একজন অভিজ্ঞ Roblox ডেভেলপারে পরিণত করুন।
+
+<p>
+  <img src="https://img.shields.io/badge/Roblox-Studio-00A2FF?style=for-the-badge&logo=roblox&logoColor=white" alt="Roblox Studio">
+  <img src="https://img.shields.io/badge/Luau-strict-2C2D72?style=for-the-badge&logo=lua&logoColor=white" alt="Luau strict">
+  <img src="https://img.shields.io/badge/Blender-bpy-E87D0D?style=for-the-badge&logo=blender&logoColor=white" alt="Blender bpy">
+</p>
+<p>
+  <img src="https://img.shields.io/badge/Skills-29-8B5CF6?style=flat-square" alt="29 skills">
+  <img src="https://img.shields.io/badge/Core_Rules-3-22D3EE?style=flat-square" alt="3 core rules">
+  <img src="https://img.shields.io/badge/AI-Claude_%7C_ChatGPT_%7C_Cursor-F472B6?style=flat-square" alt="AI agents">
+  <img src="https://img.shields.io/badge/README-বাংলা-10B981?style=flat-square" alt="Bangla README">
+</p>
+
+**[🚀 শুরু করুন](#-কীভাবে-ব্যবহার-করবেন)** ·
+**[🗂️ ফোল্ডার কাঠামো](#️-ফোল্ডার-কাঠামো)** ·
+**[📚 মূল ফাইল](#-মূল-ফাইলগুলোর-পরিচয়)** ·
+**[🧰 সহায়ক টুলস](#-সহায়ক-অফিসিয়াল-টুলস)**
 
 </div>
 
