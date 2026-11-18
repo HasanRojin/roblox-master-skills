@@ -14,7 +14,6 @@ Claude, ChatGPT, Cursor বা যেকোনো AI কোডিং এজে�
   <img src="https://img.shields.io/badge/Blender-bpy-E87D0D?style=for-the-badge&logo=blender&logoColor=white" alt="Blender bpy">
 </p>
 <p>
-  <img src="https://img.shields.io/badge/Skills-29-8B5CF6?style=flat-square" alt="29 skills">
   <img src="https://img.shields.io/badge/Core_Rules-3-22D3EE?style=flat-square" alt="3 core rules">
   <img src="https://img.shields.io/badge/AI-Claude_%7C_ChatGPT_%7C_Cursor-F472B6?style=flat-square" alt="AI agents">
   <img src="https://img.shields.io/badge/README-বাংলা-10B981?style=flat-square" alt="Bangla README">
