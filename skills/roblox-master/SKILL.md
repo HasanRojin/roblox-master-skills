@@ -33,6 +33,7 @@ matches their descriptions, so this skill does not load every skill's full text.
 
 ## Rules
 
+- Before any map, building or art pass, load `roblox-building` and `roblox-lighting`, and follow the art-pass rules in `core-rules/map-building-and-playability.md` section 5a.
 - Do not load the full text of every skill. Load a skill only when the agreed plan needs it.
 - Do not change files or install anything in this skill. Installation belongs to `project-setup`, and only after a yes.
 - Keep the summary short. The user wants to start working, not read a report.

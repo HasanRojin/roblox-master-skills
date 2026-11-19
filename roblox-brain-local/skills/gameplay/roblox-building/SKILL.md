@@ -53,6 +53,14 @@ Player ~5 studs | Door 4w×7h | Ceiling 10-14 | Counter 3.5-4 | Seat 1.5 | Path 
 **Map:** root/origin, zones, landmarks, spawns/return paths, traversal, bounds excluding Baseplate/Terrain/SpawnLocation.
 **Evidence:** readback, view when supported, playtest results.
 
+### Art Pass Checklist
+- Load `roblox-lighting` too. Brightness 2-2.5, at most 3 post effects.
+- Real materials and varied tones per prop. Neon only for small lights.
+- Z-fighting: >=0.1 stud between stacked tops. Union overlapping same-height pieces. Set `Shape` explicitly on cylinders.
+- Portal effect fills the opening. Zones follow the map shape.
+- Decor: collide/touch/query off. One invisible proxy per prop. Seats are `Seat`. No shadows on small parts.
+- Count parts, colliders and shadow casters before and after. Playtest.
+
 ### Anti-Patterns
 Guessing coordinates | unanchored/duplicate parts | hardcoded world positions | silent CSG failure | oversized batches | claims without readback
 
