@@ -92,6 +92,54 @@ Derived from default physics (`Workspace.Gravity = 196.2`, `JumpHeight = 7.2`, `
 
 ---
 
+## 5a. Art pass and performance (lessons from a real lobby build)
+
+These come from mistakes the owner caught in the Kanamachi Poke lobby (2026-11-19). Apply them on every finished-look pass.
+
+**Before the art pass**
+- Load `roblox-building` and `roblox-lighting` first. Do not build a finished look from memory.
+
+**Materials and colour**
+- Give every prop a real material (WoodPlanks, Wood, Slate, Marble, Limestone, Cobblestone, Brick, Fabric, Metal, Grass). An all-SmoothPlastic build with one flat palette looks cheap and "too cartoonish".
+- Vary tones inside a group: two or three wood tones, several greens for trees, darker stone for bases and trims.
+- Trees: rounded canopies (Ball parts with Grass material, 3 to 5 lobes) mixed with conifers. Avoid stacked cubes unless the style asks for it.
+- Use Neon only for small light sources. Large Neon areas plus Bloom blow out to flat colour.
+
+**Lighting**
+- `Lighting.Brightness` 2 to 2.5 for day. 3 washes colours out.
+- At most three post effects (for example Atmosphere, ColorCorrection, Bloom). Remove the defaults you replace so there are no duplicates.
+- `Lighting.Technology` cannot be set from MCP or scripts. Ask the owner to set it in Studio.
+
+**Z-fighting (flicker)**
+- Stacked floor layers need at least 0.1 stud between their top faces. 0.04 flickers at distance.
+- Never build one surface from overlapping boxes at the same height (for example an octagon from four rotated boxes). Use one cylinder, or `UnionAsync` the pieces.
+- Ring walls made of segments overlap at the corners. Union them.
+- Decorative layers in front of each other (portal swirl bands, signs) need distinct depths, at least 0.05 apart, and an opaque back layer.
+
+**CSG**
+- `UnionAsync` and `SubtractAsync` work from MCP in Edit mode. Set `UsePartColor = true`, then colour, material and `CollisionFidelity` on the result.
+- When a helper makes cylinders, set `Shape = Cylinder` explicitly. A missing Shape silently produced 140×140 boxes instead of discs, and the booth stuck out past the fence.
+- Ring sector = cylinder(r2) minus cylinder(r1) minus two large boxes, one on the outer side of each edge ray.
+- Read back the result (position, radius, top-down screenshot) after every CSG step.
+
+**Props that must look designed**
+- A portal's inner effect must fill the whole opening, shaped like the opening (rectangle + half disc), not a small disc in the middle. Use nested arch-shaped bands for depth.
+- A zone (VIP, shop) must follow the map's shape and height: for a round plaza, a raised ring sector against the fence with steps and a hedge, not a square dropped on top.
+- A fountain is a hollow basin (wall + floor + water surface), a pedestal, tiered bowls and water particles. Not stacked solid cylinders.
+
+**Collision proxies**
+- Decorative parts: `CanCollide`, `CanTouch`, `CanQuery` off. Give each prop one invisible proxy (bounding box, or a cylinder for round props) that collides.
+- Nothing outside the playable area collides (trees, bushes, flowers behind the fence). Invisible walls do the boundary.
+- Keep collision on what players stand on (floors, steps, platforms) and on vote pads that need `Touched`.
+- Benches and sofas: make the seat a real `Seat`. It is also the collider.
+- Small parts (largest side under 3 studs), tree lobes and bushes: `CastShadow = false`.
+- Measure before and after. In the lobby this took colliding parts from 1570 to 120, shadow casters from 1776 to 564, and total parts from 1840 to 1354.
+
+**Verify**
+- Playtest: walk onto raised areas, sit on a Seat, walk into props with proxies. Read the console.
+
+---
+
 ## 6. Building via code or Studio MCP
 
 When generating geometry from scripts (Command Bar, plugin, or Studio MCP `execute_luau`):

@@ -74,6 +74,30 @@ Logging rules:
 
 ## 3. Incident log (newest first)
 
+### [2026-11-19] Z-fighting, a small portal swirl and a dropped-in VIP zone
+- **Context:** Finished lobby for Kanamachi Poke.
+- **Mistake:** Floor layers were stacked 0.04 stud apart, an octagon step was four overlapping boxes at one height, ring segments overlapped at the corners, and portal layers were 0.1 apart. The portal swirl was a small disc in the middle of a big arch. The VIP zone was a square placed on a round plaza. Every decorative part had collision on.
+- **Symptom:** Owner saw flicker in many places, said the portal looked bad, and that the VIP zone looked "picked up and dropped there". Owner asked for collision proxies for performance.
+- **Fix:** At least 0.1 stud between stacked tops, `UnionAsync` for overlapping pieces, a portal effect shaped like the full opening with nested bands, a VIP ring sector against the fence with steps and hedges, and decorative parts with collision off behind one invisible proxy per prop. Benches became `Seat`s.
+- **Rule:** Always check stacked and overlapping faces for z-fighting, shape effects and zones to the structure and map around them, and give decorative props one collision proxy instead of per-part collision.
+- **Agent:** Claude
+
+### [2026-11-19] A cylinder helper without Shape produced huge boxes
+- **Context:** Building the VIP ring sector with CSG.
+- **Mistake:** The helper set the cylinder size but not `Shape = Enum.PartType.Cylinder`.
+- **Symptom:** The booth came out square and extended past the fence. The readback showed unexpected bounds.
+- **Fix:** Set `Shape` explicitly and read back position and a top-down screenshot after each CSG step.
+- **Rule:** Always set `Shape` explicitly when a helper creates cylinders or balls, and read back CSG results before building on them.
+- **Agent:** Claude
+
+### [2026-11-19] Built a finished lobby without loading the building and lighting skills
+- **Context:** Turning the Kanamachi Poke lobby greybox into a finished, colored lobby in Roblox Studio via MCP.
+- **Mistake:** The agent built everything from SmoothPlastic and Neon with one flat palette, cube trees, a stacked-cylinder fountain, and Lighting.Brightness = 3 with four post effects, without loading `roblox-building` or `roblox-lighting`.
+- **Symptom:** The owner said it looked too cartoonish, every part looked the same color, and the fountain had no logic.
+- **Fix:** Loaded both skills, gave each prop real materials (WoodPlanks, Slate, Marble, Cobblestone, Fabric, Metal, Grass), varied the greens and wood tones, rebuilt the fountain as a hollow octagonal basin with tiered bowls and water particles, set Brightness 2.2 and kept three post effects.
+- **Rule:** Always load `roblox-building` and `roblox-lighting` before final art passes, and give every prop a real material and its own tone instead of one flat palette.
+- **Agent:** Claude
+
 ### [2026-11-19] Built a flat page when the user wanted an infinite whiteboard
 - **Context:** User asked for a visual planning space to paste ChatGPT images and plan a game.
 - **Mistake:** The agent built a scrolling HTML page with upload slots instead of a pan/zoom canvas.
