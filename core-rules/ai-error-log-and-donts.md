@@ -74,6 +74,14 @@ Logging rules:
 
 ## 3. Incident log (newest first)
 
+### [2026-11-19] Built a flat page when the user wanted an infinite whiteboard
+- **Context:** User asked for a visual planning space to paste ChatGPT images and plan a game.
+- **Mistake:** The agent built a scrolling HTML page with upload slots instead of a pan/zoom canvas.
+- **Symptom:** User said they wanted a clipboard-like infinite space with mouse drag and zoom.
+- **Fix:** Created a board from the Whiteboard artifact type and laid out the plan there.
+- **Rule:** Always use the Whiteboard type when the user wants a board to paste images and plan visually; ask if the form is unclear.
+- **Agent:** Claude
+
 ### [2026-11-18] Wrote core rules from memory without loading the available skills
 - **Context:** Writing `core-rules/luau-coding-standards.md` and `core-rules/map-building-and-playability.md` for this repository.
 - **Mistake:** The agent wrote both files from general knowledge and did not load the Roblox skills that were installed and present in `roblox-brain-local/` (security, datastores, performance, strict typing, building, networking).
